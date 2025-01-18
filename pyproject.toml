@@ -10,6 +10,11 @@ dependencies = [
     "opencv-python-headless >= 4.10",
     "ultralytics >= 8.3",
 ]
+optional-dependencies = { dev = [
+    "build >= 1.2",
+    "pytest >= 8.3",
+    "black >= 24",
+] }
 
 [build-system]
 requires = ["setuptools >= 75.0"]
