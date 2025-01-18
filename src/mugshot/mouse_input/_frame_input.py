@@ -17,5 +17,5 @@ class FrameInput:
     
     If the position is not None, (x=0.0, y=0.0) refers to the top-left corner, and (x=1.0, y=1.0) refers to the bottom-right corner."""
 
-    is_tongue_out: Optional[bool] = None
-    """`Optional[bool]`, whether the tongue is stuck out. None by default."""
+    is_tongue_down: Optional[bool] = None
+    """`Optional[bool]`, when the tongue is stuck out, whether the tongue extends downwards. None by default."""
