@@ -9,6 +9,8 @@ import cv2
 from mugshot.mouse_input import FrameInput
 from mugshot.cv import CVWorker
 from mugshot.feed import FeedWorker
+from mugshot.mouse_input import MouseAction
+from mugshot.mouse_input import Screen
 
 
 class MainWindow(QWidget):
@@ -29,6 +31,7 @@ class MainWindow(QWidget):
 
         # Initialize start/stop button widget
         self.startStopBtn = StartStopBtn()
+        self.startStopBtn.toggled.connect(self.setDoingInputs)
         layout.addWidget(self.startStopBtn)
 
         # Set QWidget properties after initializing component widgets
@@ -44,9 +47,52 @@ class MainWindow(QWidget):
         self.cvWorker.frameProcessed.connect(self.feed.setFeed)
         self.cvWorker.inputsMade.connect(self.doInputs)
 
+        # === Start threads ===
+        self.cvWorker.start()
+        self.feedWorker.start()
+
+        logging.info(f"Finished initializing MainWindow at {time.ctime()}")
+
+    def setDoingInputs(self, value):
+        self.isDoingInputs = value
+
     def doInputs(self, frameInput: FrameInput):
-        # TODO: Process and do inputs
-        ...
+        """Public slot for executing inputs."""
+
+        if self.isDoingInputs:
+            if frameInput.is_left_eye_closed is not None:
+                if frameInput.is_left_eye_closed:
+                    MouseAction.left_down()
+                else:
+                    MouseAction.left_up()
+
+            if frameInput.is_right_eye_closed is not None:
+                if frameInput.is_right_eye_closed:
+                    MouseAction.right_down()
+                else:
+                    MouseAction.right_up()
+
+            if frameInput.cursor_pos is not None:
+                width, height = Screen.get_size()
+                new_cursor_pos = (
+                    int(frameInput.cursor_pos[0] * width),
+                    int(frameInput.cursor_pos[1] * height),
+                )
+                MouseAction.move_to(*new_cursor_pos)
+
+    def paintEvent(self, event):
+        """Overrides QWidget.paintEvent, reads successive frames in a loop."""
+
+        if self.feedWorker.capture is not None:
+            self.feedWorker.readFrame()
+        super().paintEvent(event)
+
+    def closeEvent(self, event):
+        """Overrides QWidget.closeEvent, cleans up worker resources."""
+
+        self.feedWorker.quit()
+        self.cvWorker.quit()
+        super().closeEvent(event)
 
 
 class Feed(QLabel):
@@ -63,7 +109,7 @@ class Feed(QLabel):
             frame.data, frame.shape[1], frame.shape[0], QImage.Format.Format_BGR888
         )
         image = image.scaled(self.SIZE, Qt.AspectRatioMode.KeepAspectRatio)
-        self.setPixmap(image)
+        self.setPixmap(QPixmap.fromImage(image))
 
 
 class StartStopBtn(QPushButton):
