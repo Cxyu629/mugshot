@@ -22,26 +22,12 @@ class FeedWorker(QThread):
     def __init__(self):
         super().__init__()
         self.capture = None
-        self.rect = Rectangle(0, 0, 0, 0)
-        self.width = 0
-        self.height = 0
 
     # Run Thread
     def run(self):
         """Overrides QThread.run(). Initializes a cv2.VideoCapture object asynchronously, and kickstarts an update loop.
 
         The initialization takes a few seconds."""
-        if self.capture == None:
-            self.capture = cv2.VideoCapture(0)  # Slow operation (~ 3 secs)
-            width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-            height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            if self.width == 0 or self.height == 0:
-                self.rect.x1 = (width - 640) // 2
-                self.rect.y1 = (height - 480) // 2
-                self.rect.x2 = self.rect.x1 + 640
-                self.rect.y2 = self.rect.y1 + 480
-            self.width = width
-            self.height = height
 
         logging.info(f"Initializing VideoCapture in FeedWorker at {time.ctime()}")
         if self.capture == None:
@@ -67,19 +53,7 @@ class FeedWorker(QThread):
 
         # Emits flipped image to mirror user
         flippedImage = cv2.flip(frame, 1)
-        rectOverlay = cv2.rectangle(
-            flippedImage,
-            (self.rect.x1, self.rect.y1),
-            (self.rect.x2, self.rect.y2),
-            (0, 0, 0),
-            -1,
-        )
-        self.frameRead.emit(rectOverlay)
-
-    """
-    def rectChanged(self):
-        
-    """
+        self.frameRead.emit(flippedImage)
 
     # Stop Thread
     def quit(self):
@@ -88,11 +62,3 @@ class FeedWorker(QThread):
         if self.capture is not None:
             self.capture.release()
         super().quit()
-
-
-@dataclass
-class Rectangle:
-    x1: int
-    y1: int
-    x2: int
-    y2: int

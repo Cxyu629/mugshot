@@ -1,6 +1,8 @@
 from abc import ABC
 import pyautogui
 
+from mugshot.mouse_input._screen import Screen
+
 type Point = tuple[int, int]
 
 
@@ -14,7 +16,15 @@ class MouseAction(ABC):
     def move_to(x: int, y: int):
         """Moves cursor to coordinates (`x`, `y`) on the screen. If outside boundaries of the
         screen, it moves to the nearest edge."""
-        pyautogui.moveTo(x, y)
+
+        def bound(point, size):
+            return (
+                min(max(point[0], 1), size[0] - 2),
+                min(max(point[1], 1), size[1] - 2),
+            )
+
+        bound_x, bound_y = bound((x, y), Screen.get_size())
+        pyautogui.moveTo(bound_x, bound_y)
 
     @staticmethod
     def get_position() -> Point:

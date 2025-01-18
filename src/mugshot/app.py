@@ -1,11 +1,9 @@
 import logging
 import sys
 import time
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton
-from PySide6.QtGui import QImage, QPixmap
-import cv2
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton
 
+from mugshot.components.feed import Feed, RectFloat
 from mugshot.cv import AltCVDetection
 from mugshot.mouse_input import FrameInput
 from mugshot.cv import CVWorker
@@ -22,12 +20,14 @@ class MainWindow(QWidget):
 
         # === Widget states ===
         self.isDoingInputs = False
+        self.mapArea = RectFloat(0.2, 0.2, 0.8, 0.8)
 
         # === Set up window widgets ===
         layout = QVBoxLayout()
 
         # Initialize camera feed widget
-        self.feed = Feed()
+        self.feed = Feed(mapArea=self.mapArea)
+        self.feed.mapAreaChanged.connect(self.setMapArea)
         layout.addWidget(self.feed)
 
         # Initialize start/stop button widget
@@ -61,6 +61,9 @@ class MainWindow(QWidget):
 
         self.isDoingInputs = value
 
+    def setMapArea(self, value: RectFloat):
+        self.mapArea = value
+
     def doInputs(self, frameInput: FrameInput):
         """Public slot for executing inputs."""
 
@@ -80,8 +83,16 @@ class MainWindow(QWidget):
             if frameInput.cursor_pos is not None:
                 width, height = Screen.get_size()
                 new_cursor_pos = (
-                    int(frameInput.cursor_pos[0] * width),
-                    int(frameInput.cursor_pos[1] * height),
+                    int(
+                        (frameInput.cursor_pos[0] - self.mapArea.x1)
+                        / (self.mapArea.x2 - self.mapArea.x1)
+                        * width
+                    ),
+                    int(
+                        (frameInput.cursor_pos[1] - self.mapArea.y1)
+                        / (self.mapArea.y2 - self.mapArea.y1)
+                        * height
+                    ),
                 )
                 MouseAction.move_to(*new_cursor_pos)
 
@@ -104,23 +115,6 @@ class MainWindow(QWidget):
         self.feedWorker.quit()
         self.cvWorker.quit()
         super().closeEvent(event)
-
-
-class Feed(QLabel):
-    SIZE = QSize(640, 480)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        placeHolderImage = QImage(self.SIZE, QImage.Format.Format_BGR888)
-        placeHolderImage.fill(Qt.GlobalColor.lightGray)
-        self.setPixmap(QPixmap.fromImageInPlace(placeHolderImage))
-
-    def setFeed(self, frame: cv2.typing.MatLike):
-        image = QImage(
-            frame.data, frame.shape[1], frame.shape[0], QImage.Format.Format_BGR888
-        )
-        image = image.scaled(self.SIZE, Qt.AspectRatioMode.KeepAspectRatio)
-        self.setPixmap(QPixmap.fromImage(image))
 
 
 class StartStopBtn(QPushButton):
