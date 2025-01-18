@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushB
 from PySide6.QtGui import QImage, QPixmap
 import cv2
 
+from mugshot.cv import AltCVDetection
 from mugshot.mouse_input import FrameInput
 from mugshot.cv import CVWorker
 from mugshot.feed import FeedWorker
@@ -39,7 +40,7 @@ class MainWindow(QWidget):
         self.setLayout(layout)
 
         # === Initialize threads ===
-        self.cvWorker = CVWorker()
+        self.cvWorker = CVWorker(cv_detection_class=AltCVDetection)
         self.feedWorker = FeedWorker()
 
         # === Set up signal flow ===
@@ -54,6 +55,10 @@ class MainWindow(QWidget):
         logging.info(f"Finished initializing MainWindow at {time.ctime()}")
 
     def setDoingInputs(self, value):
+        if not value and not value == self.isDoingInputs:
+            MouseAction.left_up()
+            MouseAction.right_up()
+
         self.isDoingInputs = value
 
     def doInputs(self, frameInput: FrameInput):
@@ -80,9 +85,11 @@ class MainWindow(QWidget):
                 )
                 MouseAction.move_to(*new_cursor_pos)
 
-            if frameInput.is_tongue_out is not None:
-                if frameInput.is_tongue_out:
-                    MouseAction.v_scroll(10)
+            if frameInput.is_tongue_down is not None:
+                if frameInput.is_tongue_down:
+                    MouseAction.v_scroll(-100)
+                else:
+                    MouseAction.v_scroll(100)
 
     def paintEvent(self, event):
         """Overrides QWidget.paintEvent, reads successive frames in a loop."""
