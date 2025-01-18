@@ -35,8 +35,10 @@ class FeedWorker(QThread):
             width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
             if self.width == 0 or self.height == 0:
-                self.rect.x2 = width
-                self.rect.y2 = height
+                self.rect.x1 = (width - 640) // 2
+                self.rect.y1 = (height - 480) // 2
+                self.rect.x2 = self.rect.x1 + 640
+                self.rect.y2 = self.rect.y1 + 480
             self.width = width
             self.height = height
 
@@ -62,7 +64,10 @@ class FeedWorker(QThread):
         rectOverlay = cv2.rectangle(flippedImage, (self.rect.x1, self.rect.y1), (self.rect.x2, self.rect.y2), (0, 0, 0), -1)
         self.frameRead.emit(rectOverlay)
 
-    # def rectChanged(self):
+    '''
+    def rectChanged(self):
+        
+    '''
 
 
     # Stop Thread
