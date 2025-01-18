@@ -1,3 +1,4 @@
+from ._base_cv_detection import BaseCVDetection
 from mugshot.mouse_input import FrameInput
 import os
 import cv2
@@ -13,7 +14,7 @@ MODEL_DIR = os.path.join(CURRENT_DIR, "best.pt")
 LANDMARK_MODEL_DIR = os.path.join(CURRENT_DIR, "shape_predictor_68_face_landmarks.dat")
 
 
-class CVDetection:
+class CVDetection(BaseCVDetection):
     def __init__(self):
         # Load the YOLO model
         self.yolo_model = YOLO(MODEL_DIR)
@@ -21,6 +22,10 @@ class CVDetection:
         # Initializing the Models for Landmark and face Detection
         self.detector = dlib.get_frontal_face_detector()  # type: ignore
         self.landmark_predict = dlib.shape_predictor(LANDMARK_MODEL_DIR)  # type: ignore
+
+        # Initialize frame counters
+        self.left_eye_counter = 0
+        self.right_eye_counter = 0
 
     def process_frame(
         self, frame: cv2.typing.MatLike
@@ -43,10 +48,6 @@ class CVDetection:
         # Eye landmarks
         (L_start, L_end) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
         (R_start, R_end) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
-
-        # Initialize frame counters
-        left_eye_counter = 0
-        right_eye_counter = 0
 
         # Perform YOLO inference on the frame
         results = self.yolo_model.predict(
@@ -82,15 +83,15 @@ class CVDetection:
 
             # Check if the left eye is closed
             if left_ear < EYE_AR_THRESH:
-                left_eye_counter += 1
+                self.left_eye_counter += 1
             else:
-                left_eye_counter = 0
+                self.left_eye_counter = 0
 
             # Check if the right eye is closed
             if right_ear < EYE_AR_THRESH:
-                right_eye_counter += 1
+                self.right_eye_counter += 1
             else:
-                right_eye_counter = 0
+                self.right_eye_counter = 0
 
             # Draw results on the frame
             cv2.putText(
@@ -112,7 +113,7 @@ class CVDetection:
                 2,
             )
 
-            if left_eye_counter >= EYE_AR_CONSEC_FRAMES:
+            if self.left_eye_counter >= EYE_AR_CONSEC_FRAMES:
                 cv2.putText(
                     annotated_frame,
                     "Left Eye Closed",
@@ -126,7 +127,7 @@ class CVDetection:
             else:
                 frame_input.is_left_eye_closed = False
 
-            if right_eye_counter >= EYE_AR_CONSEC_FRAMES:
+            if self.right_eye_counter >= EYE_AR_CONSEC_FRAMES:
                 cv2.putText(
                     annotated_frame,
                     "Right Eye Closed",
