@@ -10,6 +10,7 @@ from scipy.spatial import distance as dist
 # Set up paths
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(CURRENT_DIR, "best.pt")
+LANDMARK_MODEL_DIR = os.path.join(CURRENT_DIR, "shape_predictor_68_face_landmarks.dat")
 
 
 class CVDetection:
@@ -19,9 +20,7 @@ class CVDetection:
 
         # Initializing the Models for Landmark and face Detection
         self.detector = dlib.get_frontal_face_detector()  # type: ignore
-        self.landmark_predict = dlib.shape_predictor(  # type: ignore
-            "shape_predictor_68_face_landmarks.dat"
-        )
+        self.landmark_predict = dlib.shape_predictor(LANDMARK_MODEL_DIR)  # type: ignore
 
     def process_frame(
         self, frame: cv2.typing.MatLike
