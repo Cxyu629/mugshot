@@ -15,7 +15,7 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        logging.info(f"Starting MainWindow initialization at {time.ctime()}")
+        logging.info(f"Initializing MainWindow at {time.ctime()}")
 
         # === Widget states ===
         self.isDoingInputs = False
