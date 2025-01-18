@@ -80,6 +80,10 @@ class MainWindow(QWidget):
                 )
                 MouseAction.move_to(*new_cursor_pos)
 
+            if frameInput.is_tongue_out is not None:
+                if frameInput.is_tongue_out:
+                    MouseAction.v_scroll(10)
+
     def paintEvent(self, event):
         """Overrides QWidget.paintEvent, reads successive frames in a loop."""
 
