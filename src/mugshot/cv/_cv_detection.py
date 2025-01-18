@@ -1,4 +1,5 @@
-from mugshot.mouse_input._frame_input import FrameInput
+import cv2
+from mugshot.mouse_input import FrameInput
 
 
 class CVDetection:
