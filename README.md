@@ -8,7 +8,7 @@ Essentially, your face becomes a mouse.
 
 ## Prerequisites
 
-Requires python version >= 3.12.
+Requires python version ~ 3.12.
 
 Requires familiarity with using Git (alternatively, use only clone, commit, push, pull, and fetch).
 
@@ -20,7 +20,7 @@ Requires [CMAKE](https://cmake.org/download/) (for building the dlib package).
 
 1. Open your preferred directory in a command line.
 
-   - Run `git clone https://github.com/Cxyu629/hacknroll-2025.git`
+   - Run `git clone https://github.com/Cxyu629/mugshot.git`
    - Alternatively, clone the repository in any way you prefer.
 
 2. Create a virtual environment in the `/.venv/` directory for the project:
