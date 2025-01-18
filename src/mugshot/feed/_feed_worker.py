@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import logging
 from PySide6.QtCore import QThread, Signal
 import cv2
@@ -20,6 +21,9 @@ class FeedWorker(QThread):
     def __init__(self):
         super().__init__()
         self.capture = None
+        self.rect = Rectangle(0, 0, 0, 0)
+        self.width = 0
+        self.height = 0
 
     # Run Thread
     def run(self):
@@ -28,6 +32,13 @@ class FeedWorker(QThread):
         The initialization takes a few seconds."""
         if self.capture == None:
             self.capture = cv2.VideoCapture(0) # Slow operation (~ 3 secs)
+            width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            if self.width == 0 or self.height == 0:
+                self.rect.x2 = width
+                self.rect.y2 = height
+            self.width = width
+            self.height = height
 
         self.readFrame() # Call once to kickstart update loop (readFrame -> repaint -> readFrame -> ...)
 
@@ -47,7 +58,12 @@ class FeedWorker(QThread):
             return
         
         # Emits flipped image to mirror user
-        self.frameRead.emit(cv2.flip(frame, 1))
+        flippedImage = cv2.flip(frame, 1)
+        rectOverlay = cv2.rectangle(flippedImage, (self.rect.x1, self.rect.y1), (self.rect.x2, self.rect.y2), (0, 0, 0), -1)
+        self.frameRead.emit(rectOverlay)
+
+    # def rectChanged(self):
+
 
     # Stop Thread
     def quit(self):
@@ -55,3 +71,11 @@ class FeedWorker(QThread):
         if self.capture is not None:
             self.capture.release()
         super().quit()
+
+@dataclass
+class Rectangle:
+    x1:int
+    y1:int
+    x2:int
+    y2:int
+
