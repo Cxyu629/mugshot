@@ -1,6 +1,6 @@
 [project]
 name = "mugshot"
-description = "..." # TODO: Write description
+description = "A CV-based application to control one's cursor using their face."
 version = "0.1.0"
 requires-python = "== 3.12.*"
 readme = "README.md"
