@@ -4,7 +4,7 @@ import cv2
 
 
 # Thread for camera feed
-class feedWorker(QThread):
+class FeedWorker(QThread):
     
     # Worker thread relaying camera feed to GUI.
     
