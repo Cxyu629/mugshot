@@ -1,5 +1,7 @@
 import cv2
 from mugshot.mouse_input import FrameInput
+from dataclasses import dataclass
+import logging
 import os
 import cv2
 from ultralytics import YOLO
@@ -8,15 +10,21 @@ import imutils
 from scipy.spatial import distance as dist 
 from imutils import face_utils 
 
+# Set up paths
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.join(CURRENT_DIR, "best.pt")
+
 class CVDetection:
-    def __init__(self): ...
+    
+
+
+    def __init__(self):
+        self.yolo_model = YOLO(MODEL_DIR)
 
     def process_frame(
         self, frame: cv2.typing.MatLike
     ) -> tuple[cv2.typing.MatLike, FrameInput]:
-        # Set up paths
-        CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-        MODEL_DIR = os.path.join(CURRENT_DIR, "best.pt")
+        
         # Load the YOLO model
         model = YOLO(MODEL_DIR)
         # Initializing the Models for Landmark and face Detection 
